@@ -15,8 +15,8 @@ dist/
 # Backups (PostgreSQL dumps, system-table copies) — never commit
 backups/
 
-# Uploaded media (runtime data)
-server/uploads/
+# Uploaded media (runtime data) — included for Hostinger deployment
+# server/uploads/
 
 # Editor / OS
 .DS_Store

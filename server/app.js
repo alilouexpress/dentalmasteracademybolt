@@ -14,7 +14,15 @@ import purchasesRoutes from './routes/purchases.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const distDir = path.join(__dirname, '..', 'dist');
+
+// On Hostinger, dist/ may be in different locations depending on the build layout.
+// Check multiple paths: relative to server/, in CWD, and in Hostinger's nodejs/ folder.
+const possibleDistDirs = [
+  path.join(__dirname, '..', 'dist'),
+  path.join(process.cwd(), 'dist'),
+  path.join(process.cwd(), 'nodejs'),
+];
+const distDir = possibleDistDirs.find((p) => fs.existsSync(p)) || possibleDistDirs[0];
 
 const app = express();
 
