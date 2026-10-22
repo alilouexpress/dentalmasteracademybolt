@@ -10,7 +10,6 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -27,15 +26,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (cached) setUser(cached);
 
     (async () => {
-      const { ok, data } = await api<{ user: AuthUser }>('/api/auth/me');
-      if (ok) {
-        setUser(data.user);
-        setStoredUser(data.user);
-      } else {
+      const timeout = new Promise<never>((_, reject) => {
+        window.setTimeout(() => reject(new Error('La vérification de session a expiré.')), 8000);
+      });
+
+      try {
+        const { ok, data } = await Promise.race([
+          api<{ user: AuthUser }>('/api/auth/me'),
+          timeout,
+        ]);
+        if (ok) {
+          setUser(data.user);
+          setStoredUser(data.user);
+        } else {
+          setUser(null);
+          setStoredUser(null);
+        }
+      } catch {
         setUser(null);
         setStoredUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 
@@ -54,16 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { ok, data, error } = await api<{ user: AuthUser }>('/api/auth/register', {
-      method: 'POST',
-      body: { email, password },
-    });
-    if (!ok) return { error };
-    applySession(data.user);
-    return { error: null };
-  };
-
   const signOut = async () => {
     await api('/api/auth/logout', { method: 'POST' });
     setStoredUser(null);
@@ -71,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

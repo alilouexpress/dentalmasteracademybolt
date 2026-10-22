@@ -41,13 +41,6 @@ export const loginLimiter = createRateLimiter({
   message: 'Trop de tentatives. Réessayez dans quelques minutes.',
 });
 
-// Account creation: max 5 attempts per hour per IP.
-export const registerLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  message: 'Trop de tentatives de création de compte. Réessayez plus tard.',
-});
-
 // Public purchase form (no auth): max 10 submissions per 15 minutes per IP,
 // to prevent database spam.
 export const purchasesLimiter = createRateLimiter({

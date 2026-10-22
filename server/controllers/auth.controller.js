@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import pool from '../db.js';
 import { signToken, revokeToken } from '../lib/tokens.js';
@@ -30,44 +29,6 @@ export async function me(req, res) {
     res.json({ user: rows[0] });
   } catch (err) {
     console.error('[auth:me]', err);
-    res.status(500).json({ error: 'Erreur serveur.' });
-  }
-}
-
-export async function register(req, res) {
-  const { email, password } = req.body || {};
-  const { email: cleanEmail, error } = validateCredentials(email, password);
-  if (error) return res.status(400).json({ error });
-
-  // When ADMIN_REGISTER_KEY is set it is required for every registration, so a
-  // production instance can never be claimed by someone who finds the endpoint.
-  // Without it, only the very first account can be created (bootstrap).
-  const setupKey = process.env.ADMIN_REGISTER_KEY;
-  const keyOk = setupKey && req.headers['x-admin-key'] === setupKey;
-  if (setupKey && !keyOk) {
-    return res.status(403).json({ error: 'Clé d\'inscription requise ou invalide.' });
-  }
-
-  try {
-    const { rows: countRows } = await pool.query('SELECT CAST(COUNT(*) AS UNSIGNED) AS c FROM users');
-    if (countRows[0].c > 0 && !keyOk) {
-      return res.status(403).json({ error: 'Un compte administrateur existe déjà.' });
-    }
-
-    const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const id = crypto.randomUUID();
-    await pool.query(
-      'INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)',
-      [id, cleanEmail, hash]
-    );
-    const user = { id, email: cleanEmail };
-    setAuthCookie(res, signToken(user));
-    res.status(201).json({ user });
-  } catch (err) {
-    if (err && err.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
-    }
-    console.error('[auth:register]', err);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 }

@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 
 export default function AdminLogin() {
-  const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [email, setEmail] = useState('');
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('alilouexpressdz@gmail.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -13,8 +12,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const fn = mode === 'login' ? signIn : signUp;
-    const { error } = await fn(email, password);
+    const { error } = await signIn(email, password);
     setLoading(false);
     if (error) setError(error);
   };
@@ -36,25 +34,6 @@ export default function AdminLogin() {
         </div>
 
         <div className="glass rounded-3xl p-8">
-          <div className="flex gap-2 mb-6 p-1 glass rounded-xl">
-            <button
-              onClick={() => setMode('login')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === 'login' ? 'bg-gold-500/20 text-gold-300' : 'text-white/40 hover:text-white/70'
-              }`}
-            >
-              Connexion
-            </button>
-            <button
-              onClick={() => setMode('signup')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === 'signup' ? 'bg-gold-500/20 text-gold-300' : 'text-white/40 hover:text-white/70'
-              }`}
-            >
-              Créer un compte
-            </button>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-white/50 text-xs font-semibold mb-2 uppercase tracking-wider">
@@ -95,14 +74,12 @@ export default function AdminLogin() {
               disabled={loading}
               className="w-full magnetic-btn bg-gradient-to-r from-gold-500 to-gold-600 text-black font-bold text-base px-6 py-3.5 rounded-xl glow-gold disabled:opacity-50"
             >
-              {loading ? 'Chargement...' : mode === 'login' ? 'Se connecter' : 'Créer le compte'}
+              {loading ? 'Chargement...' : 'Se connecter'}
             </button>
           </form>
 
           <p className="text-white/30 text-xs text-center mt-6">
-            {mode === 'login'
-              ? "Accès réservé à l'administrateur."
-              : 'Créez votre compte administrateur pour gérer le site.'}
+            Accès réservé à l’administrateur. Aucun compte ne peut être créé depuis ce site.
           </p>
         </div>
 
